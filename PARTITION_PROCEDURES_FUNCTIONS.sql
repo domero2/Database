@@ -80,25 +80,28 @@ CREATE OR REPLACE PROCEDURE TUCEL002.ADD_PARTITION_IF_NOT_EXISTS(P_TABLE_NAME IN
     END IF;
   END;
 
- /*To checking if there are some higher date(in source table) in partitoin column which is ACTUAL_DATE in our case. I have modified ADD_PARTITION_IF_NOT_EXISTS but better if 
- GET_YEAR_MONTH_DAY function will be modified because ADD_PARTITION IS USED to add name based on data from GET_YEAR_MONTH_DAY.
- Declare additional fields:
-  V_DATE_CHECK VARCHAR2(100);
-  V_RET2          VARCHAR2(100);
- select to_char(MAX(to_date(actual_date,'YYYY-MM-DD')),'YYYYMMDD') as ACTUAL_DATE
-   INTO V_DATE_CHECK from 
-(select distinct actual_date from mxi3_t_TRADES_RAW);
-
-AND if statement should be modified
-
-  IF P_DATE_RET_STRING IS NULL AND GET_YEAR_MONTH_DAY(P_DATE) > V_DATE_CHECK THEN
-      V_RET := ADD_PARTITION(P_TABLE_NAME, GET_YEAR_MONTH_DAY(P_DATE));
-     ELSE 
-     V_RET2 := ADD_PARTITION(P_TABLE_NAME, V_DATE_CHECK);
+ /*To checking if there are some higher date(in source table) in partitoin column which is ACTUAL_DATE in our case. I have modified GET_YEAR_MONTH_DAY*/ 
+ 
+	create or replace FUNCTION GET_YEAR_MONTH_DAY(P_DATE IN DATE) 
+RETURN VARCHAR2 
+IS
+v_Date1 date;
+v_Date VARCHAR2(20);
+BEGIN
+ select to_date(to_char(MAX(to_date(actual_date,'YYYY-MM-DD')),'YYYYMMDD'),'YYYYMMDD') 
+   INTO v_Date1 FROM (select distinct actual_date from MXI3_T_TRADES_RAW);
+      IF P_DATE IS NULL THEN
+      RETURN NULL;
+     ELSIF v_Date1 > P_DATE THEN
+      v_Date := TO_CHAR(v_DATE1, 'YYYYMMDD');
+    ELSE
+    v_Date := TO_CHAR(P_DATE, 'YYYYMMDD');
     END IF;
-	
+ RETURN v_DATE;
+  END;
 
-	
+/*	
 Note that LOGGER.LOG_WARN, LOGGER.LOG_ERROR 
-can cause the problems.
+can cause the problems if we don't install LOGGER package.
+LOGGER PACKAGE avaliable in LOGGER.sql script 
 */
