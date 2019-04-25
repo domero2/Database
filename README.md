@@ -11,3 +11,6 @@ Usefull procedure used to count business days. Note that you need table where yo
 
 Triggers_architecture.sql
 Useful solution for flagging processed and unprocessed rows or rows which cause an error.
+
+LOGGER.sql
+Package which contains package body with procedures for logging errors occured in database. This package contains DDL for DB_LOG table aswell.
