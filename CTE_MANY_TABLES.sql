@@ -342,3 +342,54 @@ AND ST.TRADE_STATUS_SRC          IN ('Four Eyes Validated','Trusted Source','Can
 AND TRUNC(ST.TRADE_TIME_SRC) > TO_DATE('$$TRADE_TIME_SRC','$$TRADE_TIME_SRC_FORMAT')
 ORDER BY ST.SOR_TRANS_INSTR_CODE_INT_SRC ,
   ST.SOR_TRANS_REF_SRC
+  
+  
+  
+  /* NESTED JOINS*\
+  
+  SELECT 
+	ST.SOR_TRANS_ID,
+	ST.SRC_SYSTEM_CODE,
+	ST.SOR_TRANS_REF_SRC,
+	SUB_TS.MAX_SOR_TRANS_UPDATE_TS_SRC AS SOR_TRANS_UPDATE_TS_SRC,
+	ST.TRADE_VERSION_SRC AS VERSION_NO,
+	ST.TRADE_DATE_SRC
+FROM 
+	USERz.Tablez ST
+JOIN
+(
+	SELECT 
+		SOR_TRANS_REF_SRC,
+		MAX(SOR_TRANS_UPDATE_TS_SRC) AS MAX_SOR_TRANS_UPDATE_TS_SRC
+	FROM
+		USERz.Tablez
+	GROUP BY
+		SOR_TRANS_REF_SRC
+) SUB_TS
+ON 	ST.SOR_TRANS_REF_SRC = SUB_TS.SOR_TRANS_REF_SRC
+AND ST.SOR_TRANS_UPDATE_TS_SRC = SUB_TS.MAX_SOR_TRANS_UPDATE_TS_SRC
+
+LEFT OUTER JOIN
+(
+	SELECT distinct	
+		SI1.sor_instr_code_int_src,
+		SI1.SOR_INSTR_TYPE_SRC
+	FROM
+		USERz.Tablez SI1
+	INNER JOIN
+	(
+		select
+			max(sor_instr_id) sor_instr_id,
+			sor_instr_code_int_src
+		from
+			USERz.Tablez
+		group by 
+			sor_instr_code_int_src
+	) SI2
+	ON SI1.sor_instr_id = SI2.sor_instr_id
+) SI
+on	ST.sor_trans_instr_code_int_src = SI.sor_instr_code_int_src
+
+WHERE	ST.SRC_SYSTEM_CODE in ($$SOURCE_SYSTEM) 
+AND		'SO1' in ($$SOURCE_SYSTEM)
+AND		to_number(to_char(ST.SOR_TRANS_ID)) > $$p_s_LAST_TE_SO1
