@@ -67,6 +67,20 @@ from AM1_T_TRADES_EXT
 group by to_char(ODS_CREATE_DT, 'MM')
 ORDER BY SumValue;
 --------------------------------MERGE
+SELECT * FROM bonuses ORDER BY employee_id;
+
+EMPLOYEE_ID      BONUS
+----------- ----------
+        153        100
+        154        100
+        155        100
+        156        100
+        158        100
+        159        100
+        160        100
+        161        100
+        163        100
+	
 MERGE INTO bonuses D
    USING (SELECT employee_id, salary, department_id FROM employees
    WHERE department_id = 80) S
@@ -75,4 +89,21 @@ MERGE INTO bonuses D
      DELETE WHERE (S.salary > 8000)
    WHEN NOT MATCHED THEN INSERT (D.employee_id, D.bonus)
      VALUES (S.employee_id, S.salary*.01)
+     
+  EMPLOYEE_ID      BONUS
+----------- ----------
+        153        180
+        154        175
+        155        170
+        159        180
+        160        175
+        161        170
+        179        620
+        173        610
+        165        680
+        166        640
+        164        720
+        172        730
+        167        620
+        171        740
      WHERE (S.salary <= 8000);
