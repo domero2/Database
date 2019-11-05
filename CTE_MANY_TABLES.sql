@@ -1,288 +1,117 @@
 WITH sip AS
   (SELECT /*+ parallel(8) */ 
-    sip.SOR_INSTR_ID ,
-    sip.SOR_INSTR_PACK_CODE_INT_SRC ,
-    sip.SOR_INSTR_MARKET_NAME ,
-    sip.SOR_INSTR_TYPE_SRC ,
-    sip.SOR_INSTR_NAME ,
-    sip.SOR_OPT_CALL_PUT ,
-    sip.SOR_OPT_STRIKE ,
-    sip.SOR_INSTR_CCY ,
-    sip.SOR_OPT_STYLE ,
-    sip.SOR_OPT_PAYOFFTYPE ,
-    sip.SOR_INSTR_EXPIRY ,
-    sip.SETTLMENT_TYPE ,
-    sip.TRADE_PRICE_MULTIPLIER ,
-    sip.SOR_INSTR_ISIN ,
-    sip.UNDERLYINGISIN ,
-    sip.SOR_INSTR_CODE_INT_SRC,
-    sip.SOR_INSTR_MODEL
+    sip.SOR_1 ,
+    sip.Sor2 ,
+    sip.Sor3 
   FROM user1.TABLE1 sip
-  WHERE sip.SOR_INSTR_TYPE_SRC ='Package'
-  AND sip.SOR_INSTR_MODEL NOT IN ('Reserved PNL','HVB PuMa OTC Derivative','Uni iCPPI Package')
+  WHERE sip.SOR_6 ='Package'
+  AND sip.SOR_5 NOT IN ('something','something2','something3')
   ),
   sic AS
   (SELECT /*+ parallel(8) */
-    sic.SOR_INSTR_ID ,
-    sic.SOR_INSTR_PACK_CODE_INT_SRC ,
-    sic.SOR_INSTR_MARKET_NAME ,
-    sic.SOR_INSTR_TYPE_SRC ,
-    sic.SOR_INSTR_NAME ,
-    sic.SOR_OPT_CALL_PUT ,
-    sic.SOR_OPT_STRIKE ,
-    sic.SOR_INSTR_CCY ,
-    sic.SOR_OPT_STYLE ,
-    sic.SOR_OPT_PAYOFFTYPE ,
-    sic.SOR_INSTR_EXPIRY ,
-    sic.SETTLMENT_TYPE ,
-    sic.TRADE_PRICE_MULTIPLIER ,
-    sic.SOR_INSTR_ISIN ,
-    sic.UNDERLYINGISIN ,
-    sic.SOR_INSTR_CODE_INT_SRC,
-	sic.SOR_INSTR_MODEL,
-  sic.SOR_UND_INSTR_TYPE_SRC
+    sic.SOR_ID ,
+    sic.SOR_2 ,
+    sic.SOR_3
   FROM user1.TABLE1 sic
-  WHERE sic.SOR_INSTR_TYPE_SRC <>'Package'
-  OR (sic.SOR_INSTR_TYPE_SRC    = 'Package'
-  AND sic.SOR_INSTR_MODEL      IN ('Reserved PNL','HVB PuMa OTC Derivative','Uni iCPPI Package'))
+  WHERE sic.SOR_2 <>'Package'
+  OR (sic.2    = 'Package'
+  AND sic.SOR_3      IN (something','something2','something3'))
   ) ,
   pay AS
-  (SELECT sld.sor_instr_id ,
-    sld.SOR_LEG_UND_INSTR_ISIN,
-    sld.SOR_LEG_CCY
+  (SELECT sld.sor_1 ,
+    sld.SOR_L2,
+    sld.SOR_3
   FROM user1.TABLE1 sld
-  WHERE sld.SOR_LEG_PAYMNT_SIGN='pay'
+  WHERE sld.SOR_5='pay'
   ) ,
   rec AS
-  (SELECT sld.sor_instr_id,
-    sld.SOR_LEG_UND_INSTR_ISIN,
-    sld.SOR_LEG_CCY
+  (SELECT sld.sor_1,
+    sld.SOR_2,
+    sld.SOR_3
   FROM user1.TABLE1 sld
-  WHERE sld.SOR_LEG_PAYMNT_SIGN='receive'
+  WHERE sld.SOR_L3='receive'
   ) ,
   phys AS
-  (SELECT sld.sor_instr_id,
-    sld.SOR_LEG_UND_INSTR_ISIN,
-    sld.SOR_LEG_CCY
+  (SELECT sld.sor1,
+    sld.SOR_2,
+    sld.SOR_3
   FROM user1.TABLE1 sld
-  WHERE sld.SOR_LEG_TYPE_SRC='physical'
+  WHERE sld.3='physical'
   ) ,
   st_nodups AS
-  (SELECT MAX(sor_trans_id) AS sor_trans_id,
-    sor_trans_ref_src
+  (SELECT MAX(sor_1) AS sor_1,
+    sor_2
   FROM user1.TABLE1
-  WHERE TRUNC(SOR_TRANS_TS) =TO_DATE('$$p_s_REPORTING_DATE', '$$p_s_DATE_FORMAT')
-  GROUP BY sor_trans_ref_src
+  WHERE TRUNC(SOR_DATE) =TO_DATE('$$p_R_DATE', '$$p_DATE_FORMAT')
+  GROUP BY sor_2
   )
   ,
   si_nodups AS
-  (SELECT MAX(sor_instr_id) AS sor_instr_id,
-    SOR_INSTR_CODE_INT_SRC
+  (SELECT MAX(sor_1) AS sor_1,
+    SOR_2
   FROM user1.TABLE1
-  GROUP BY SOR_INSTR_CODE_INT_SRC
+  GROUP BY SOR_2
   ) ,
 
  pack as 
   ( select /*+ parallel(8) */
-    sip.SOR_INSTR_ID ,
-    sic.SOR_INSTR_ID SIC_SOR_INSTR_ID,
-    sic.SOR_INSTR_MODEL,
-    sip.SOR_INSTR_PACK_CODE_INT_SRC ,
-    sic.SOR_INSTR_MARKET_NAME ,
-    sic.SOR_INSTR_TYPE_SRC ,
-    sic.SOR_INSTR_NAME ,
-    sic.SOR_OPT_CALL_PUT ,
-    sic.SOR_OPT_STRIKE ,
-    sic.SOR_INSTR_CCY ,
-    sic.SOR_OPT_STYLE ,
-    sic.SOR_OPT_PAYOFFTYPE ,
-    sic.SOR_INSTR_EXPIRY ,
-    sic.SETTLMENT_TYPE ,
-    sic.TRADE_PRICE_MULTIPLIER ,
-    sic.SOR_INSTR_ISIN ,
-    sic.UNDERLYINGISIN ,
-    sic.SOR_INSTR_CODE_INT_SRC,
-    sic.SOR_UND_INSTR_TYPE_SRC
+    sip.SOR_1 ,
+    sic.SOR_1,
+    sic.SOR_2,
   FROM sip
   
   left join sic 
   ON instr(';'
 			||TRIM(BOTH ';'
-					FROM sip.SOR_INSTR_PACK_CODE_INT_SRC)
+					FROM sip.SOR_2)
 			||';',';'
 			||sic.SOR_INSTR_CODE_INT_SRC
 			||';',1,1)          >0 
 
  inner join  si_nodups  
- on sic.SOR_INSTR_CODE_INT_SRC=SI_NODUPS.SOR_INSTR_CODE_INT_SRC
- AND sic.SOR_INSTR_ID=SI_NODUPS.SOR_INSTR_ID
+ on sic.SOR_1=SI_NODUPS.SOR_1
+ AND sic.SOR_1=SI_NODUPS.SOR_1
 
  )
   
 SELECT ST.TRADE_STATUS_SRC ,
-  ST.SOR_TRANS_REF_SRC ,
-  ST.EXTERNAL_TRANS_ID ,
-  ST.ENTITY_SRC ,
-  ST.COUNTERPARTY_CODE_INT_SRC ,
-  ST.NDG_CODE ,
-  LTRIM(ST.NDG_CODE,'0') AS NDG_CODE_LTRIM,
-  ST.TRADE_QTY_OR_NOMINAL ,
-  ST.TRADE_TIME_SRC ,
-  ST.SOR_TRANS_INSTR_CODE_INT_SRC ,
-  ST.SOR_TRANS_ID ,
-  ST.SOR_TRANS_TYPE_SRC ,
-  ST.TRADE_PRICE ,
-  ST.TRADE_PRICE_CCY ,
-  ST.MIC_CODE ,
-  ST.MEMBERSHIP_CODE ,
-  ST.SOR_TRANS_NETAMOUNT ,
-  ST.COMPLEXTRCOMPID ,
-  ST.ALGO_ID ,
-  ST.INVESTMENTDECISIONWITHINFIRM ,
-  ST.OPERATOR_CODE_SRC ,
-  ST.COMMODITIES_INDIC ,
-  ST.NOSTRO_ACCOUNT_CODE_SRC ,
-  ST.TRADE_VERSION_SRC ,
-  ST.SOR_TRANS_ENTRY_USER_CODE ,
-  SI.SOR_INSTR_PRODUCT_TYPE_SRC,
-  SI.SOR_INSTR_MODEL,
-  SI.SOR_INSTR_TYPE_SRC,
-  SI.SOR_INSTR_ALLOTMENT ,
-  SI.SOR_INSTR_CODE_INT_SRC ,
-  SI.SOR_INSTR_CCY,
-  SI.SOR_INSTR_PACK_CODE_INT_SRC,
-  SI.SOR_INSTR_ID,
-   pack2.SOR_INSTR_ISIN              AS SOR_INSTR_ISIN_IP_Pack,
-  pack2.SOR_INSTR_NAME              AS SOR_INSTR_NAME_IP_Pack,
-  si.SOR_INSTR_ISIN                AS SOR_INSTR_ISIN_IP_NoPack,
-  si.SOR_INSTR_NAME                AS SOR_INSTR_NAME_IP_NoPack,
-  pack2.SOR_INSTR_TYPE_SRC          AS SOR_INSTR_TYPE_SRC_IP_Pack,
-  si.SOR_INSTR_TYPE_SRC            AS SOR_INSTR_TYPE_SRC_IP_NoPack,
-  SIP_R.SOR_LEG_CCY                AS SOR_LEG_CCY_Pack_Rec,
-  rec.SOR_LEG_CCY                  AS SOR_LEG_CCY_NoPack_Rec,
-  SIP_P.SOR_LEG_CCY                AS SOR_LEG_CCY_Pack_Pay,
-  pay.SOR_LEG_CCY                  AS SOR_LEG_CCY_NoPack_Pay,
-  SIP_R.SOR_LEG_UND_INSTR_ISIN     AS SOR_LEG_UND_INSTR_ISIN_Pack_R,
-  rec.SOR_LEG_UND_INSTR_ISIN       AS SOR_LEG_UND_INSTR_ISIN_NoP_R,
-  SIP_P.SOR_LEG_UND_INSTR_ISIN     AS SOR_LEG_UND_INSTR_ISIN_Pack_P,
-  pay.SOR_LEG_UND_INSTR_ISIN       AS SOR_LEG_UND_INSTR_ISIN_NoP_P,
-  phys.SOR_LEG_UND_INSTR_ISIN       AS SOR_LEG_UND_INSTR_ISIN_Phys,
-  pack.SOR_INSTR_TYPE_SRC           AS SOR_INSTR_TYPE_SRC_Pack,
-  sic.SOR_INSTR_TYPE_SRC           AS SOR_INSTR_TYPE_SRC_NoPack,
-  pack.SOR_INSTR_MARKET_NAME        AS SOR_INSTR_MARKET_NAME_Pack,
-  sic.SOR_INSTR_MARKET_NAME        AS SOR_INSTR_MARKET_NAME_NoPack,
-  pack2.TRADE_PRICE_MULTIPLIER      AS TRADE_PRICE_MULTI_IP_Pack,
-  si.TRADE_PRICE_MULTIPLIER        AS TRADE_PRICE_MULTI_IP_NoPack,
-  pack2.UNDERLYINGISIN              AS UNDERLYINGISIN_IP_Pack,
-  si.UNDERLYINGISIN                AS UNDERLYINGISIN_IP_NoPack,
-  pack2.SOR_INSTR_MARKET_NAME       AS SOR_INSTR_MKT_NAME_IP_Pack,
-  si.SOR_INSTR_MARKET_NAME         AS SOR_INSTR_MKT_NAME_IP_NoPack,
-  pack2.SOR_OPT_PAYOFFTYPE          AS SOR_OPT_PAYOFFTYPE_IP_Pack,
-  si.SOR_OPT_PAYOFFTYPE            AS SOR_OPT_PAYOFFTYPE_IP_NoPack,
-  pack2.SOR_OPT_CALL_PUT            AS SOR_OPT_CALL_PUT_IP_Pack,
-  si.SOR_OPT_CALL_PUT              AS SOR_OPT_CALL_PUT_IP_NoPack,
-  pack2.SOR_OPT_STRIKE              AS SOR_OPT_STRIKE_IP_Pack,
-  si.SOR_OPT_STRIKE                AS SOR_OPT_STRIKE_IP_NoPack,
-  pack2.SOR_INSTR_CCY               AS SOR_INSTR_CCY_IP_Pack,
-  si.SOR_INSTR_CCY                 AS SOR_INSTR_CCY_IP_NoPack,
-  pack2.SOR_OPT_STYLE               AS SOR_OPT_STYLE_IP_Pack,
-  si.SOR_OPT_STYLE                 AS SOR_OPT_STYLE_IP_NoPack,
-  pack2.SOR_INSTR_EXPIRY            AS SOR_INSTR_EXPIRY_IP_Pack,
-  si.SOR_INSTR_EXPIRY              AS SOR_INSTR_EXPIRY_IP_NoPack,
-  pack2.SOR_INSTR_ID                AS SOR_INSTR_ID_IP_Pack,
-  si.SOR_INSTR_ID                  AS SOR_INSTR_ID_IP_NoPack,
-  pack.SOR_INSTR_ID                 AS SOR_INSTR_ID_Pack,
-  SIC.SOR_INSTR_ID                 AS SOR_INSTR_ID_NoPack,
-  pack2.SETTLMENT_TYPE              AS SETTLMENT_TYPE_IP_Pack,
-  si.SETTLMENT_TYPE                AS SETTLMENT_TYPE_IP_NoPack,
-  pack2.SOR_INSTR_MODEL             AS SOR_INSTR_MODEL_IP_Pack,
-  pack2.SOR_INSTR_PACK_CODE_INT_SRC AS SOR_INSTR_P_CODE_INT_SRC_IP_P,
-  pack.SOR_UND_INSTR_TYPE_SRC as SOR_UND_INSTR_TYPE_SRC_Pack,
-  sic.SOR_UND_INSTR_TYPE_SRC as SOR_UND_INSTR_TYPE_SRC_NoPack,
-  ST.PRODUCT_TYPE,
-  st.PRICE_NOTATION,
-  st.INCR_DECR,
-  st.SOR_TRANS_INSTR_ISIN,
-  ST.TRADING_BOOK_SRC
+  ST.SOR_2 ,
+   pack2.SOR_2             AS SOR_2_IP_Pack,
+  pack2.SOR_INSTR_NAME              AS SOR_2_IP_Pack,
+  si.SOR_3                AS SOR_3_IP_NoPack,
+  si.SOR_4                AS SOR_4_IP_NoPack,
+  SIP_R.SOR_6               AS SOR_6_Pack_Rec,
+  rec.SOR_7                  AS SOR_7_NoPack_Rec,
+  SIP_P.SOR_7                AS SOR_7_Pack_Pay,
+  pay.SOR_7                  AS SOR_7_NoPack_Pay,
+  phys.SOR_3       AS SOR_3_Phys,
+  pack.SOR_2           AS SOR_2_Pack,
+  SIC.SOR_1                 AS SOR_1_NoPack,
+  ST.TRADING1
 
 FROM user1.TABLE1 st
 
 INNER JOIN st_nodups
-ON st.sor_trans_id      =st_nodups.sor_trans_id
-AND st.sor_trans_ref_src=st_nodups.sor_trans_ref_src
+ON st.sor_1      =st_nodups.sor_1
+AND st.sor_t2=st_nodups.sor_2
 
   --___________________________________JOIN_SO1_INST
 INNER JOIN SI_NODUPS
-ON ST.SOR_TRANS_INSTR_CODE_INT_SRC=SI_NODUPS.SOR_INSTR_CODE_INT_SRC
+ON ST.SOR_T3=SI_NODUPS.SOR_I3
 
 INNER JOIN user1.TABLE1 si
-ON SI.SOR_INSTR_CODE_INT_SRC=SI_NODUPS.SOR_INSTR_CODE_INT_SRC
-AND SI.SOR_INSTR_ID=SI_NODUPS.SOR_INSTR_ID
-AND NOT ( (SI.SOR_INSTR_ALLOTMENT='Default'
-AND SI.SOR_INSTR_MODEL           ='Uni Future MtM'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Rates'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Rates')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Default'
-AND SI.SOR_INSTR_MODEL           ='Bchr(38)S or Simple Cox'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Listed Options or Listed Derivatives'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Basket/Share')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Default'
-AND SI.SOR_INSTR_MODEL           ='Bchr(38)S or Simple Cox'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Listed Options or Listed Derivatives'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Share')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Eurex/Flex'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Swaps'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Commodity')
-OR (SI.SOR_INSTR_ALLOTMENT       ='CCS/CME'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Swaps'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Commodity')
-OR (SI.SOR_INSTR_ALLOTMENT       ='CCS/ICE'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Swaps'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Commodity')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Default'
-AND SI.SOR_INSTR_MODEL           ='Physical'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Future'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Commodity')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Default'
-AND SI.SOR_INSTR_MODEL           ='No Basket Split'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Future'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Commodity')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Default'
-AND SI.SOR_INSTR_MODEL           ='Uni Future'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Future'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Commodity')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Default'
-AND SI.SOR_INSTR_MODEL           ='Uni Gas Future'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Future'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Commodity')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Default'
-AND SI.SOR_INSTR_MODEL           ='LME Future'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Future'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Commodity')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Eurex/Flex'
-AND SI.SOR_INSTR_MODEL           ='HVB_LME Bchr(38)S Listed American'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Derivative'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Commodity')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Default'
-AND SI.SOR_INSTR_MODEL           ='HVB Dividend Future'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Future'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Basket/Share')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Default'
-AND SI.SOR_INSTR_MODEL           ='HVB Notional Future'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Future'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Securities')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Default'
-AND SI.SOR_INSTR_MODEL           ='Uni Future'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Future'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Basket/Share')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Default'
-AND SI.SOR_INSTR_MODEL           ='Uni Future MtM'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Future'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Basket/Share')
-OR (SI.SOR_INSTR_ALLOTMENT       ='Default'
-AND SI.SOR_INSTR_MODEL           ='Uni Future MtM'
-AND SI.SOR_INSTR_PRODUCT_TYPE_SRC='Futures'
-AND SI.SOR_UND_INSTR_TYPE_SRC    ='Currencies') )
+ON SI.SOR_I2=SI_NODUPS.SOR_I2
+AND SI.SOR_I3=SI_NODUPS.SOR_I3
+AND NOT ( (SI.SOR_I8='Default'
+AND SI.SOR_2           ='Uni Future MtM'
+AND SI.SOR_3='Rates'
+AND SI.SOR_4    ='Rates')
+OR (SI.SOR_5       ='Default'
+AND SI.SOR_6           ='Bchr(38)S or Simple Cox'
+AND SI.SOR_7='Listed Options or Listed Derivatives'
+AND SI.8    ='Basket/Share')
+OR (SI.SOR_9       ='Default'
+AND SI.SOR_11          ='Bchr(38)S or Simple Cox'))
 
   --___________________________________JOIN_SO1_UND_INST_PACK
 LEFT JOIN pack
