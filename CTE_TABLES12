@@ -1,0 +1,220 @@
+WITH sip AS
+  (SELECT /*+ parallel(8) */ 
+    sip.SOR_1 ,
+    sip.Sor2 ,
+    sip.Sor3 
+  FROM user1.TABLE1 sip
+  WHERE sip.SOR_6 ='Package'
+  AND sip.SOR_5 NOT IN ('something','something2','something3')
+  ),
+  sic AS
+  (SELECT /*+ parallel(8) */
+    sic.SOR_ID ,
+    sic.SOR_2 ,
+    sic.SOR_3
+  FROM user1.TABLE1 sic
+  WHERE sic.SOR_2 <>'Package'
+  OR (sic.2    = 'Package'
+  AND sic.SOR_3      IN (something','something2','something3'))
+  ) ,
+  pay AS
+  (SELECT sld.sor_1 ,
+    sld.SOR_L2,
+    sld.SOR_3
+  FROM user1.TABLE1 sld
+  WHERE sld.SOR_5='pay'
+  ) ,
+  rec AS
+  (SELECT sld.sor_1,
+    sld.SOR_2,
+    sld.SOR_3
+  FROM user1.TABLE1 sld
+  WHERE sld.SOR_L3='receive'
+  ) ,
+  phys AS
+  (SELECT sld.sor1,
+    sld.SOR_2,
+    sld.SOR_3
+  FROM user1.TABLE1 sld
+  WHERE sld.3='physical'
+  ) ,
+  st_nodups AS
+  (SELECT MAX(sor_1) AS sor_1,
+    sor_2
+  FROM user1.TABLE1
+  WHERE TRUNC(SOR_DATE) =TO_DATE('$$p_R_DATE', '$$p_DATE_FORMAT')
+  GROUP BY sor_2
+  )
+  ,
+  si_nodups AS
+  (SELECT MAX(sor_1) AS sor_1,
+    SOR_2
+  FROM user1.TABLE1
+  GROUP BY SOR_2
+  ) ,
+
+ pack as 
+  ( select /*+ parallel(8) */
+    sip.SOR_1 ,
+    sic.SOR_1,
+    sic.SOR_2,
+  FROM sip
+  
+  left join sic 
+  ON instr(';'
+			||TRIM(BOTH ';'
+					FROM sip.SOR_2)
+			||';',';'
+			||sic.SOR_INSTR_CODE_INT_SRC
+			||';',1,1)          >0 
+
+ inner join  si_nodups  
+ on sic.SOR_1=SI_NODUPS.SOR_1
+ AND sic.SOR_1=SI_NODUPS.SOR_1
+
+ )
+  
+SELECT ST.TRADE_STATUS_SRC ,
+  ST.SOR_2 ,
+   pack2.SOR_2             AS SOR_2_IP_Pack,
+  pack2.SOR_INSTR_NAME              AS SOR_2_IP_Pack,
+  si.SOR_3                AS SOR_3_IP_NoPack,
+  si.SOR_4                AS SOR_4_IP_NoPack,
+  SIP_R.SOR_6               AS SOR_6_Pack_Rec,
+  rec.SOR_7                  AS SOR_7_NoPack_Rec,
+  SIP_P.SOR_7                AS SOR_7_Pack_Pay,
+  pay.SOR_7                  AS SOR_7_NoPack_Pay,
+  phys.SOR_3       AS SOR_3_Phys,
+  pack.SOR_2           AS SOR_2_Pack,
+  SIC.SOR_1                 AS SOR_1_NoPack,
+  ST.TRADING1
+
+FROM user1.TABLE1 st
+
+INNER JOIN st_nodups
+ON st.sor_1      =st_nodups.sor_1
+AND st.sor_t2=st_nodups.sor_2
+
+  --___________________________________JOIN_SO1_INST
+INNER JOIN SI_NODUPS
+ON ST.SOR_T3=SI_NODUPS.SOR_I3
+
+INNER JOIN user1.TABLE1 si
+ON SI.SOR_I2=SI_NODUPS.SOR_I2
+AND SI.SOR_I3=SI_NODUPS.SOR_I3
+AND NOT ( (SI.SOR_I8='Default'
+AND SI.SOR_2           ='Uni Future MtM'
+AND SI.SOR_3='Rates'
+AND SI.SOR_4    ='Rates')
+OR (SI.SOR_5       ='Default'
+AND SI.SOR_6           ='Bchr(38)S or Simple Cox'
+AND SI.SOR_7='Listed Options or Listed Derivatives'
+AND SI.8    ='Basket/Share')
+OR (SI.SOR_9       ='Default'
+AND SI.SOR_11          ='Bchr(38)S or Simple Cox'))
+
+  --___________________________________JOIN_SO1_UND_INST_PACK
+LEFT JOIN pack
+ON si.sor_1=pack.sor_1
+AND si.sor_2=pack.SOR_2
+
+LEFT JOIN sic
+ON si.sor_3=sic.SOR_1
+
+  --___________________________________JOIN_SO1_INST_PACK
+LEFT JOIN pack pack2
+on si.sor_1=pack2.sor_1
+
+  --___________________________________JOIN_SO1_LEG_PAY
+LEFT JOIN pay
+ON si.sor_2=pay.sor_i2
+
+  --___________________________________JOIN_SO1_LEG_REC
+LEFT JOIN rec
+ON si.sor_i1=rec.sor_i3
+
+  --___________________________________JOIN_SO1_LEG_PHYS
+LEFT JOIN phys
+ON si.sor_i1=phys.sor_1
+
+  --___________________________________JOIN_SO1_LEG_PAY_PACK
+LEFT JOIN pay sip_p
+ON sip_p.sor_1=pack2.sic_sor_1
+
+  --___________________________________JOIN_SO1_LEG_REC_PACK
+LEFT JOIN rec sip_r
+ON sip_r.sor_1=pack2.sic_sor_1
+
+WHERE
+TRUNC(ST.SOR_DATE) =TO_DATE('$$p_R_DATE', '$$p_DATE_FORMAT')
+AND 
+ST.COUNTERPARTY1 NOT LIKE '#%'
+AND ST.COUNTERPARTY1 NOT IN ('21','22','25')
+AND upper(ST.ENT4)                 = 'SPA'
+AND (ST.P_TYPE in $$PRODUCT_TYPE
+OR ((ST.P_TYPE in $$PRODUCT_TYPE2 
+AND (st.SOR_1 IS NOT NULL 
+OR pack2.SOR_I2 IS NOT NULL) 
+AND ST.T3 NOT IN (1,-1)) 
+OR (ST.P_TYPE NOT in ('COM223', 'COM123') 
+AND ST.T3 IN (1,-1) AND (st.SOR_T5 IS NOT NULL OR 
+pack2.SOR_2 IS NOT NULL)))OR REGEXP_LIKE(pack2.SOR_I5,'^[a-zA-Z]{2}.{10}') 
+AND length(pack2.SOR_I5)=12
+OR REGEXP_LIKE(si.SOR_I5,'^[a-zA-Z]{2}.{10}') 
+AND length(si.SOR_I5)=12
+OR pack2.UNDER4 IS NOT NULL
+OR si.UNDER4IS NOT NULL
+OR SIP_R.SOR_Lr4 IS NOT NULL
+OR SIP_P.SOR_LEr4 IS NOT NULL)
+AND ST.SOR_T76 in ('purs')
+AND ST.TR23          IN ('canc')
+AND TRUNC(ST.TRADE_T2) > TO_DATE('$$TRADE_T2','$$TRADE_FORMAT')
+ORDER BY ST.SOR_1 ,
+  ST.SOR_T4
+  
+  
+  
+  /* NESTED JOINS*\
+  
+  SELECT 
+	ST.SOR_T1,
+	ST.SRC_1,
+FROM 
+	USERz.Tablez ST
+JOIN
+(
+	SELECT 
+		SOR_T2,
+		MAX(SOR_T3) AS MAX_SOR_T3
+	FROM
+		USERz.Tablez
+	GROUP BY
+		SOR_T2
+) SUB_TS
+ON 	ST.SOR_T2 = SUB_TS.SOR_T2
+AND ST.SOR_T3 = SUB_TS.MAX_SOR_T3
+
+LEFT OUTER JOIN
+(
+	SELECT distinct	
+		SI1.sor_i1,
+		SI1.SOR_I2
+	FROM
+		USERz.Tablez SI1
+	INNER JOIN
+	(
+		select
+			max(sor_1) sor_i1,
+			sor_i2
+		from
+			USERz.Tablez
+		group by 
+			sor_i2
+	) SI2
+	ON SI1.sor_i1 = SI2.sor_i1
+) SI
+on	ST.sor_t2 = SI.sor_i2
+
+WHERE	ST.SRC_SYSTEM_CODE in ($$SOURCE_SYSTEM) 
+AND		'sok1' in ($$SOURCE_SYSTEM)
+AND		to_number(to_char(ST.SOR_TRANS_ID)) > $$p_s_LAST_TE_SO1
