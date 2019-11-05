@@ -23,13 +23,13 @@ SELECT xmltype(REPLACE(REPLACE(message_data, '<!DOCTYPE MxML SYSTEM "mxml.dtd">'
 
     SELECT
       updateXML(v_message_data
-      , '/KPLUS_MESSAGE/IamDeals/TypeOfEvent/text()', v_comment
-	  , '/KPLUS_MESSAGE/LoansDepositDeals/TypeOfEvent/text()', v_comment
-	  , '/KPLUS_MESSAGE/CashFlowDeals/TypeOfEvent/text()', v_comment
-	  , '/KPLUS_MESSAGE/SpotDeals/TypeOfEvent/text()', v_comment
-	  , '/KPLUS_MESSAGE/ForwardDeals/TypeOfEvent/text()', v_comment
-	   , '/KPLUS_MESSAGE/FxSwapDeals/TypeOfEvent/text()', v_comment
-      , '/KPLUS_MESSAGE/HEADER/Action/text()', v_event_action
+      , '/KPLUS_M../text()', v_comment
+	  , '/KPLUS_M../text()', v_comment
+	  , '/KPLUS_M../text()', v_comment
+	  , '/KPLUS_M../text()', v_comment
+	  , '/KPLUS_M../text()', v_comment
+	   , '/KPLUS_M../text()', v_comment
+      , '/KPLUS_M../text()', v_event_action
       ) INTO v_message_data
     FROM dual;
     
@@ -76,20 +76,20 @@ BEGIN
 	FROM
 		TABLE1
 	WHERE
-		EXISTSNODE(v_message_data, '/MxML/events/secondaryEvent/action/text()' )= 1
+		EXISTSNODE(v_message_data, '/MxML/e../text()' )= 1
 		AND msg_id = v_xml_id;
 		
 		
-IF v_flag = 1 THEN -- When /MxML/events/secondaryEvent[1]/action' exists, then update two paths, else update only one xpath
+IF v_flag = 1 THEN -- When /MxML/e...t[1]/action' exists, then update two paths, else update only one xpath
  SELECT
-	UPDATEXML( v_message_data, '/MxML/events/mainEvent/action/text()', v_mainevent, 
-	'/MxML/events/secondaryEvent/action/text()', v_secondaryevent )
+	UPDATEXML( v_message_data, '/MxML/e../text()', v_mainevent, 
+	'/MxML/e../text()', v_secondaryevent )
 	INTO
 		v_message_data
 	FROM
 		dual;
 ELSE  SELECT
-	UPDATEXML( v_message_data, '/MxML/events/mainEvent/action/text()', v_mainevent_cancel ) INTO
+	UPDATEXML( v_message_data, '/MxML/e../text()', v_mainevent_cancel ) INTO
 		v_message_data
 	FROM
 		dual;
@@ -135,13 +135,13 @@ SELECT xmltype(REPLACE(REPLACE(message_data, '<!DOCTYPE MxML SYSTEM "mxml.dtd">'
     -- Count trade nodes
     SELECT count(*) cnt INTO v_cnt
     FROM xmltable('/MxML/trades/trade' passing v_message_data COLUMNS trade_version NUMBER PATH 
-	'businessObjectId/versionIdentifier/versionRevision/versionNumber/text()' ) TABLE1;
+	'br/vn/vber/text()' ) TABLE1;
     
     -- Update some header informations
     SELECT
       updateXML(v_message_data
-      , '/MxML/contracts/contract[1]/contractHeader/contractSource/lastContractEventReference/@mefClass', v_comment
-      , '/MxML/contracts/contract[1]/contractHeader/contractSource/lastContractEventAction/text()', v_event_action
+      , '/MxML/cs/ct[1]/cer/cource/lnce/@mefClass', v_comment
+      , '/MxML/cs/ct[1]/cer/cource/laion/text()', v_event_action
       ) INTO v_message_data
     FROM dual;
     
@@ -150,8 +150,8 @@ SELECT xmltype(REPLACE(REPLACE(message_data, '<!DOCTYPE MxML SYSTEM "mxml.dtd">'
     LOOP
       SELECT
         updateXML(v_message_data,
-          '/MxML/trades/trade['||v_i||']/businessObjectId/versionIdentifier/versionRevision/versionNumber/text()', 
-		  extractValue(v_message_data, '/MxML/trades/trade['||v_i||']/businessObjectId/versionIdentifier/versionRevision/versionNumber/text()')+1 
+          '/MxML/ts/te['||v_i||']/bId/verier/verion/veber/text()', 
+		  extractValue(v_message_data, '/MxML/ts/te['||v_i||']/bId/verier/verion/veber/text()')+1 
         ) INTO v_message_data
       FROM dual;
       
