@@ -307,59 +307,59 @@ Select AVG(DATEDIFF(year, BirthDate, Getdate()))as wiek, Title from Employees
 group by Title;
 
 --8
-/*
+
 Select Distinct(ShipCountry)
 from Orders 
 where ShippedDate between '1997-01-01' and '1997-12-31';
-*/
+
 --9 (22)
-/*
+
 Select CompanyName, ContactName, Phone, Fax 
 from Customers
 where fax is null;
-*/
+
 --10
-/*
+
 Select CompanyName, ContactName, Phone, Fax 
 from Customers
 where country = 'UK'
-*/
+
 --11 do sprawdzenia
-/*
+
 select CustomerID, MIN(OrderDate), MIN(OrderID) 
 from Orders
 group by CustomerID
-*/
+
 
 -------------------joiny
 --12
-/*
+
 Select Products.ProductName, Suppliers.CompanyName from Suppliers 
 inner join 
 Products on Products.SupplierID = Suppliers.SupplierID
 where
 ProductName = 'Tofu';
-*/
+
 --13
-/*
+
 Select Customers.CompanyName, COUNT(Orders.OrderID) as IloscZamowien 
 from Orders
 Right Join 
 Customers On Customers.CustomerID = Orders.CustomerID
 group by Customers.CompanyName
 Order by IloscZamowien;
-*/
+
 --14
-/*
+
 Select COUNT([Order Details].Quantity) as IloscZamowien, Orders.ShipCountry
 from Orders
 inner Join [Order Details] 
 on [Order Details].OrderID = Orders.OrderID
 Where 
 OrderID in (10250, 10657, 10710 , 10901);
-*/
+
 --15 sprzeda¿ w ka¿dym miesiacu 
-/*
+
 Select SUM(([Order Details].Quantity * [Order Details].UnitPrice)) as wartosc, 
 MONTH(Orders.OrderDate)as Miesiac
 from Orders 
@@ -367,54 +367,54 @@ inner join [Order Details] on [Order Details].OrderID = Orders.OrderID
 where Year(Orders.OrderDate) = 1997
 group by MONTH(Orders.OrderDate)
 order by Miesiac;
-*/
+
 --16
-/*
+
 Select Count([Order Details].Quantity) as 'Liczba Zamowien', Orders.EmployeeID
 from [Order Details]
 inner join Orders on [Order Details].OrderID = Orders.OrderID
 group by EmployeeID order by [Liczba Zamowien] desc;
-*/
+
 --17 wartoœæ zamowienia poszczegolnych pracownikow 
-/*
+
 select Sum(([Order Details].Quantity * [Order Details].UnitPrice)) as 'wartosc zamowienia', Orders.EmployeeID
 from [Order Details]
 inner join orders on [Order Details].OrderID = Orders.OrderID
 where Year(Orders.OrderDate) = 1997
 group by orders.EmployeeID
 order by [wartosc zamowienia] desc;
-*/
+
 --18 produkty dostarczane przez dostawcow
-/*
+
 Select ProductName, Suppliers.CompanyName 
 from products 
 right join Suppliers on Products.SupplierID = Suppliers.SupplierID
 group by Suppliers.CompanyName, Products.ProductName
-*/
+
 --19, 20 5 klientow z najwieksza wartoscia zamowienia
-/*
+
 select top 5 Sum(([Order Details].Quantity * [Order Details].UnitPrice)) as 'wartosc zamowienia',
  Orders.CustomerID
 from [Order Details]
 inner join orders on [Order Details].OrderID = Orders.OrderID
 group by Orders.CustomerID
 order by [wartosc zamowienia] desc;
-*/
+
 --21 
 --------------------------------Level 3
 --2 (46 rows)
-/*
+
 select OrderID
 from Orders
 where CustomerID in
 (Select CustomerID from Customers where City = 'London');
-*/
+
 --3(678)
-/*
+
 Select CustomerID, OrderDate
 from Orders
 where OrderDate > '1996-12-31';
-*/
+
 --4
 -------------------------------------------------------------------Modulo funtion 
 
@@ -450,20 +450,20 @@ where CustomerID in (Select CustomerID from Customers where country = 'USA')
 and Employees.EmployeeID in (Select EmployeeID from Employees where Title = 'Sales Representative');
 
 --7 (5)
-/*
+
 select SupplierID, ProductName
 from Products 
 where ProductID in (select ProductID from [Order Details] where OrderID = 10337);
-*/
+
 --8 (33)
-/*
+
 Select CustomerID, OrderID
 from Orders
 where OrderID in(Select OrderID from [Order Details] where ProductID = 28);
-*/
+
 
 ---------------------------------------------------Pêtla T-SQL
-/*
+
 DECLARE @liczba int = 1;
 DECLARE @liczba2 int = 1;
 
@@ -488,9 +488,9 @@ CASE
      ELSE 'Zamówienie numer 10270'
 END
 FROM Orders;
-*/
+
 --------------------------------------------------------------------------------How to use OVER
-/*USE AdventureWorks2008
+USE AdventureWorks2008
 GO
  
 select SalesOrderId, ProductID, SalesOrderDetailId as DetailId, LineTotal ,
@@ -511,9 +511,9 @@ COUNT(LineTotal) OVER(partition by SalesOrderId order by SalesOrderDetailId) as 
  
 from Sales.SalesOrderDetail 
 where SalesOrderId IN (43666,43664)
-*/
+
 --- Stored Procedure
-/*
+
 CREATE PROCEDURE Sales_Quater
 (
 	@FirstName	VARCHAR(50),
@@ -529,7 +529,7 @@ SELECT sp.SalesLastYear
  WHERE c.FirstName = @FirstName AND c.LastName = @LastName
 GO
 EXEC Sales_Quater ‘Jose’, ‘Saraiva’
-*/
+
 
 Select * from Employees
 
