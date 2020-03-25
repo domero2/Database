@@ -66,3 +66,18 @@ as "2"
 from "database_name".information_schema.columns where 
 table_name = 'table_name' and table_schema = 'schema_name' and table_catalog = 'database_name'
 ) select_part on insert_part."1" = select_part."1";
+
+                       
+-- Function which return last file from s3 stage, prevent to load only csv extension and regex patern matched
+create or replace  function LastFile()
+returns string
+as
+$$
+SELECT
+   distinct TRIM(split_part(METADATA$FILENAME,'/',3)) as name
+    FROM '@"DATABCOSTS"."LOADFILES"."AirflowAlbiAws"/Databricks/non-prod/'
+     where regexp_like(name, '^[0-9]{{16}}-[0-9]{{4}}-[0-9]{{2}}-[a-zA-Z]{{5}}.csv') 
+      and METADATA$FILENAME not in (Select distinct "FileName" from  "DATABCOSTS"."LOADFILES"."DatabricksCosts")
+       order by name 
+        limit 1
+$$;                       
