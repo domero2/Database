@@ -80,4 +80,24 @@ SELECT
       and METADATA$FILENAME not in (Select distinct "FileName" from  "DATABCOSTS"."LOADFILES"."DatabricksCosts")
        order by name 
         limit 1
-$$;                       
+$$;   
+                            
+                            
+                            
+ --Getting data from s3 bbucket using staging and inserting into SF
+COPY INTO "{database_name}"."{schema_name}"."{table_name_staging}"("Items", "FileName", "LoadingDate")
+from (select t.$1,  METADATA$FILENAME, current_timestamp::timestamp_ntz
+from '@"{stage_database}"."{stage_schema}"."{stage_name}"/{s3_folder_name}/{environment}/{file_name}'
+(file_format => '"{stage_database}"."{stage_schema}"."{file_format_name}"') t)
+ON_ERROR = 'ABORT_STATEMENT';
+
+                            
+--Parse json instruction to get json data                           
+INSERT INTO "database_name"."schema_name"."table_name"
+("Column1",
+"Column2")
+select 
+TRIM(parse_json($1):"Column1_name",'"') as "Column1_name",
+TRIM(parse_json($1):"Column2_name",'"') as "Column2_name"
+
+from "database_name"."schema_name"."table_name"
