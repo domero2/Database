@@ -9,3 +9,4 @@ using ( SELECT "PK_of_table","Sysdate","file",
   and Src."file" = SubRank."file"
   and Src."flag" in ('U','Y')
   when matched then update set Src."flag" = SubRank."Calculation";
+                       
