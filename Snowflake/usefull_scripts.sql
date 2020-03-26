@@ -101,3 +101,17 @@ TRIM(parse_json($1):"Column1_name",'"') as "Column1_name",
 TRIM(parse_json($1):"Column2_name",'"') as "Column2_name"
 
 from "database_name"."schema_name"."table_name"
+                            
+-- How to update table using CTE
+update "database_name"."schema_name"."table_name" upd set upd."FlagColumn" = inner."FlagColumn2"
+from ( 
+with Ranks( SELECT "PK_of_table","Sysdate","file",
+          case row_number() over (partition by "PK_of_table" 
+                                  order by "Sysdate" desc, "file" desc) when 1 then 'Y' else 'N' end AS "Calculation"
+       FROM "database_name"."schema_name"."table_name"
+      WHERE "flag" in ('U','Y')) 
+ select * from Ranks) inner
+  on upd."PK_of_table" = inner."PK_of_table"
+  and upd."Sysdate" = inner."Sysdate"
+  and upd."file" = inner."file"
+  and upd."flag" in ('U','Y')
