@@ -115,3 +115,20 @@ with Ranks( SELECT "PK_of_table","Sysdate","file",
   and upd."Sysdate" = inner."Sysdate"
   and upd."file" = inner."file"
   and upd."flag" in ('U','Y')
+           
+--Conditional join to tracking costs 
+create or replace view "{database_name}"."{schema_name}"."{table_name}" as 
+select AllCost.*, LKP."Price", (LKP."Price" * AllCost."DBUS") "TotalCost" from 
+(select DevCost."WorkspaceId",DevCost."TimeStampDB", DevCost."ClusterId", 
+DevCost."BillingSKU", DevCost."DBUS",DevCost."MachineHours", 
+DevCost."FileName",'AWS_Account_number' as "AccountName", 'dev' as "ShortAccount"
+from "{database_name}"."{schema_name}"."{table_name}" DevCost 
+union all
+select Cost."WorkspaceId",Cost."TimeStampDB", Cost."ClusterId",
+Cost."BillingSKU", Cost."DBUS",Cost."MachineHours",Cost."FileName", 
+'AWS_Account_number' as "AccountName",'pre-prod' as "ShortAccount"
+from "{database_name}"."{schema_name}"."DataBricksBasic" Cost) AllCost
+
+inner join "{database_name}"."{schema_name}"."{Lkp_table_name}" LKP
+ON LKP."BillingSKU" = AllCost."BillingSKU"
+WHERE DATE_TRUNC("DAY",AllCost."TimeStampDB") BETWEEN LKP."FromDate" AND LKP."ToDate"
