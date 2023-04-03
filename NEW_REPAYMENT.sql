@@ -38,11 +38,6 @@ BEGIN
 	ELSE v_F_PAYMENT_DATE := p_LEGAL_DATE;
 	END IF;
 	RETURN v_F_PAYMENT_DATE;
-	
-/*====================================================*/
-/* Author: Albert Majcher                             */
-/* Purpose: FUNCTION used to count FIRST_PAYMENT_DATE */                                 
-/*====================================================*/
 END;
 
 
@@ -124,10 +119,4 @@ BEGIN
   END LOOP;
  COMMIT;
 p_dummy := 'Y';
-/*======================================================================*/
-/* Author: Albert Majcher                                               */
-/* Purpose: PROCEDURE used to generate payment dates, nominal           */
-/* and amount values. Based on input ports from REPAYMENT_TEMP          */
-/* v_dummy additional variable used to perform  procedure on informatica*/                                 
-/*======================================================================*/
 END;
